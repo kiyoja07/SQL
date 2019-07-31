@@ -1,6 +1,48 @@
 
 
 
+-- 검색 기준 유저 리텐션
+
+with user_search as (
+	-- 전체 검색 로그
+	select date_trunc('day', updated) as date, viewer_uid as uid
+	from item_search_log
+)
+,new_user_search as (
+	-- 가입일의 검색 로그
+	select search.date, joined.device, search.uid
+	from user_search as search
+	join user_for_stats as joined
+	on search.uid = joined.uid and search.date = date_trunc('day', joined.join_date)
+),
+new_user_count as (
+	-- 가입일의 검색 유저 수
+	select date, device, count(distinct uid) as new_user
+	from new_user_search
+	group by 1, 2
+)
+
+
+select date, device, period,
+	joined_users, retained_users, retention
+from (
+	select new_user.date, new_user.device, datediff(day, new_user.date, search.date) AS period,
+		max(new_user_count.new_user) as joined_users,
+		count(distinct search.uid) as retained_users,
+		count(distinct search.uid) / max(new_user_count.new_user)::float as retention
+	from new_user_search new_user
+	left join user_search search
+	on new_user.uid = search.uid and new_user.date <= search.date and
+		(new_user.date + interval '30 days') >= search.date
+	left join new_user_count
+	on new_user.date = new_user_count.date
+	group by 1, 2, 3
+)
+where period is not null
+order by 1, 2, 3
+
+
+
 -- 첫 구매월 기준 구매 금액 리텐션
 
 -- 전체 구매 데이터

@@ -73,23 +73,13 @@ ON p.pid = s.pid AND DATE_trunc('month', p.updated)> s.month_at AND p.status IN 
 GROUP BY 1
 ORDER BY 1
 
--- noChange
--- status의 change가 없는 제품의 등록월별 현재 status
-SELECT DATE_trunc('month', i.register_date) AS MONTH_at, i.status, COUNT(DISTINCT i.pid)
-FROM product_info_for_stats i
-LEFT JOIN product_status_change_log c
-ON i.pid = c.pid
-WHERE c.pid IS NULL
-GROUP BY 1, 2
-ORDER BY 1, 2
-
 
 -- noChange
 -- status의 change가 없는 제품의 등록월별 현재 판매불가 상품
 SELECT DATE_trunc('month', i.register_date) AS month_at, COUNT(DISTINCT i.pid)
 FROM product_info_for_stats i
 LEFT JOIN product_status_change_log c
-ON i.pid = c.pid and i.status = c.status
+ON i.pid = c.pid
 WHERE c.pid IS NULL and i.status in (1, 2, 3)
 GROUP BY 1
 ORDER BY 1
@@ -142,3 +132,15 @@ FROM product_status_change_log
 WHERE status IN (1, 2, 3)
 GROUP BY 1
 ORDER BY 1
+
+
+-- noChange
+-- 사용 안 함
+-- status의 change가 없는 제품의 등록월별 현재 status
+SELECT DATE_trunc('month', i.register_date) AS MONTH_at, i.status, COUNT(DISTINCT i.pid)
+FROM product_info_for_stats i
+LEFT JOIN product_status_change_log c
+ON i.pid = c.pid
+WHERE c.pid IS NULL
+GROUP BY 1, 2
+ORDER BY 1, 2

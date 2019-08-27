@@ -1,3 +1,12 @@
+-- Google BigQuery
+
+select event_date, event_param.value.string_value, count(event_param.value.string_value) as count
+from `bunjang-68108.analytics_153554412.events_*`,
+UNNEST(event_params) as event_param
+where event_name = 'personal_card'
+  and _TABLE_SUFFIX BETWEEN '20190719' and '20190805'
+  and event_param.key = 'content_type'
+group by event_date, event_param.value.string_value
 
 
 select event_date, event_param.key, event_param.value.string_value, count(event_timestamp) as count
